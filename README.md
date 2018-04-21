@@ -1,3 +1,10 @@
+Projet de billeterie en ligne,  basé sur un exercice openclassrooms et adapté en reactjs. 
+installation des dépendances :
+- npm i intl-locales-supported
+- npm i material-ui
+
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
 Below you will find some information on how to perform common tasks.<br>
