@@ -24,6 +24,7 @@ if (areIntlLocalesSupported(['fr', 'fa-IR'])) {
 }
 
 const maxDate = new Date(Date.now());
+var showPrice;
 
 class QtyBillets extends React.Component {
   constructor(props) {
@@ -177,6 +178,7 @@ class Form extends React.Component {
       qtyBillets: "0",
       error: {},
       total: {},
+      isError: false,
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -211,7 +213,7 @@ class Form extends React.Component {
         ['tarif_reduit' + billet] : undefined,
       },
       total : { ...this.state.total,
-        ['date_naissance' + billet] : undefined,
+        ['billet' + billet] : undefined,
       },
     };
   }
@@ -270,7 +272,7 @@ class Form extends React.Component {
     error: {
       ...prevState.error,
       [name] : "",
-      }
+      },
     }));
   }
   
@@ -374,9 +376,8 @@ class Form extends React.Component {
           [name] : !prevState[name],
         };
       });
-      console.log("valeur de la tick"+ !this.state[name]);
       if (!this.state[name] && this.state.total["billet" + idRaw] > 10) {
-            console.log("dans la verif du prix ");
+            //dans la verif du prix
             this.setState({total : { 
                           ...this.state.total,
                           ["billet" + idRaw] : 10,
@@ -413,24 +414,44 @@ class Form extends React.Component {
   } 
 
   handleResa(){
-    console.log(this.props);
-    Object.entries(this.state).forEach(([clé, valeur]) => {
-      if (clé !=="total" && clé !=="error" && (valeur === "" || (valeur.constructor === Object && Object.keys(valeur).length === 0))) {
-            this.setState(prevState => ({
-              error: {
-                ...prevState.error,
-                [clé] : "Le champ doit être rempli",
-                }
-            }));
+    this.setState({isError: false});
+    Object.entries(this.state).forEach(([cle, valeur]) => {
+      if (cle !=="total" && cle !=="error" && (valeur === "" || (valeur.constructor === Object && Object.keys(valeur).length === 0))) {
+            console.log("dans erreur");
+            // callback sur methode showprice dans une function arrow sinon résultat faux
+            this.setState(prevState => {
+              return {
+                error: {
+                  ...prevState.error,
+                  [cle] : "Le champ doit être rempli",
+                  },
+                  isError: true
+              };
+            }, ()=> this.showPrice());
+      } else {
+        if (cle === "total" && Object.keys(valeur).length !== 0) {
+          var addition = 0;
+          for (let inTotal in valeur) {
+            addition = addition + valeur[inTotal];
+          }
+          console.log("dans total addition " + addition);
+          this.setState({ totalAdd : addition });
+        }
       }
     });
+  }
+
+  showPrice() {
+    showPrice = (!this.state.isError && this.state.totalAdd !== undefined);
+    return showPrice
   }
 
   render() {
     const style = {
       margin: 12,
     };
-    console.log(this.state);
+    console.log(this.state); 
+    console.log("showPrice render is "+ showPrice);
     const forms = [];
     for(let i = 0; i < this.state.qtyBillets; i++) {
       forms.push( this.state["viewCoord" + i] ? (
@@ -477,7 +498,10 @@ class Form extends React.Component {
     }
 
     return (
+      <div>
+      { this.showPrice() ? ( "Vous devez payer" +this.state.totalAdd ) : (    
       <form>
+    
           <QtyBillets value={this.state.qtyBillets} onValChange={this.handleQtyChange}/>
           <div>{forms}</div>
           {this.state.qtyBillets > 0 ? 
@@ -485,8 +509,12 @@ class Form extends React.Component {
                 <RaisedButton label="Réserver" backgroundColor="#a4c639" labelColor="#ffffff" style={style} onClick={this.handleResa}/>
                 <RaisedButton label="Redémarrer réservation" secondary={true} style={style} onClick={this.handleQtyReset}/>
             </div>):("")
-          }   
+          } 
+       
       </form>
+      
+      )} 
+      </div>
     );
   }
 }
