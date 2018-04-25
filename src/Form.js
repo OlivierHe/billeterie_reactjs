@@ -24,7 +24,7 @@ if (areIntlLocalesSupported(['fr', 'fa-IR'])) {
 }
 
 const maxDate = new Date(Date.now());
-var showPrice;
+var back = false;
 
 class QtyBillets extends React.Component {
   constructor(props) {
@@ -278,12 +278,16 @@ class Form extends React.Component {
   
 
   handleBackup(){
+    back = false;
   }
 
   handleRestore(idBillet){
-    this.setState(this.clearTicket(idBillet));
+    // permet garder les tickets quand on valide la resa
+    // dans le cas contraire de les supprimers par différentes actions 
+    if(!back) {
+      this.setState(this.clearTicket(idBillet), this.setState({}));
+    }
     this.showResa();
-    this.setState({});
 
   }
 
@@ -416,7 +420,7 @@ class Form extends React.Component {
   handleResa(){
     this.setState({isError: false});
     Object.entries(this.state).forEach(([cle, valeur]) => {
-      if (cle !=="total" && cle !=="error" && (valeur === "" || (valeur.constructor === Object && Object.keys(valeur).length === 0))) {
+      if (cle !=="total" && cle !=="error" && valeur !== undefined && (valeur === "" || (valeur.constructor === Object && Object.keys(valeur).length === 0))) {
             console.log("dans erreur");
             // callback sur methode showprice dans une function arrow sinon résultat faux
             this.setState(prevState => {
@@ -427,23 +431,29 @@ class Form extends React.Component {
                   },
                   isError: true
               };
-            }, ()=> this.showPrice());
+            });
       } else {
         if (cle === "total" && Object.keys(valeur).length !== 0) {
           var addition = 0;
           for (let inTotal in valeur) {
-            addition = addition + valeur[inTotal];
+              if (valeur[inTotal] !== undefined) {
+                  addition = addition + valeur[inTotal];
+            }
           }
           console.log("dans total addition " + addition);
           this.setState({ totalAdd : addition });
+          back = true;
         }
       }
     });
   }
 
-  showPrice() {
-    showPrice = (!this.state.isError && this.state.totalAdd !== undefined);
-    return showPrice
+  showPrice(back) {
+    // permet de revenir en arrière après la resa en cas d'erreur
+    if (back) {
+      this.setState({isError: true});
+      back = true;
+    }
   }
 
   render() {
@@ -451,7 +461,7 @@ class Form extends React.Component {
       margin: 12,
     };
     console.log(this.state); 
-    console.log("showPrice render is "+ showPrice);
+    //console.log("showPrice render is "+ showPrice);
     const forms = [];
     for(let i = 0; i < this.state.qtyBillets; i++) {
       forms.push( this.state["viewCoord" + i] ? (
@@ -499,7 +509,10 @@ class Form extends React.Component {
 
     return (
       <div>
-      { this.showPrice() ? ( "Vous devez payer" +this.state.totalAdd ) : (    
+      { !this.state.isError && this.state.totalAdd !== undefined ? (
+        ("Vous devez payer" +this.state.totalAdd),
+        <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
+       ) : (    
       <form>
     
           <QtyBillets value={this.state.qtyBillets} onValChange={this.handleQtyChange}/>
