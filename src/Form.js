@@ -6,6 +6,8 @@ import MenuItem from 'material-ui/MenuItem';
 import DatePicker from 'material-ui/DatePicker';
 import Checkbox from 'material-ui/Checkbox';
 import Snackbar from 'material-ui/Snackbar';
+import Paper from 'material-ui/Paper';
+import StripeCheckout from 'react-stripe-checkout';
 import areIntlLocalesSupported from 'intl-locales-supported';
 import './App.css';
 
@@ -456,6 +458,67 @@ class Form extends React.Component {
     }
   }
 
+
+  closeStripeView(){
+    return (
+      <Paper zDepth={2}>
+        Merci de votre visite vous recevrez un mail prochainement !
+      </Paper>
+    );
+  }
+
+  payView(style) {
+    const paperStyle ={
+      margin: 20,
+      padding: 20,
+      textAlign: 'center',
+      display: 'inline-block',
+    };
+
+   
+    const onToken = (token) => {
+      console.log(token);
+      const secKey = "youWontGetIt";
+     /* 
+      "https://stripe.com/docs/error-codes/parameter-missing"
+      "Must provide source or customer."*/
+      fetch('https://api.stripe.com/v1/charges', {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ' + secKey
+        },
+        method: 'POST',
+        body: JSON.stringify(token),
+      }).then(response => {
+        response.json().then(data => {
+          console.log(data);
+          this.closeStripeView();
+        });
+      });
+    }
+    
+    return (
+
+        <Paper zDepth={2} style={paperStyle}>
+        <p>Il vous reste à regler {this.state.totalAdd} euros</p> 
+        <StripeCheckout
+        name="Billeterie du Louvre" // the pop-in header title
+        amount={this.state.totalAdd * 100} // cents
+        currency="EUR"
+        locale="fr"
+        label="Payer"
+        style={{ background: '#a4c639', borderRadius: 'unset'}} 
+        textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
+        touchRipple={true}
+        token={onToken}
+        stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
+        />
+        <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
+        </Paper>
+    );
+  }
+
   render() {
     const style = {
       margin: 12,
@@ -510,8 +573,7 @@ class Form extends React.Component {
     return (
       <div>
       { !this.state.isError && this.state.totalAdd !== undefined ? (
-        ("Vous devez payer" +this.state.totalAdd),
-        <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
+          this.payView(style)
        ) : (    
       <form>
     

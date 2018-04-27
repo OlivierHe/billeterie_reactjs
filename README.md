@@ -2,6 +2,7 @@ Projet de billeterie en ligne,  basé sur un exercice openclassrooms et adapté 
 installation des dépendances :
 - npm i intl-locales-supported
 - npm i material-ui
+- npm i react-stripe-checkout
 
 
 

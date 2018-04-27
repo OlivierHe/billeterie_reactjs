@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "base-64": "^0.1.0",
     "intl": "^1.2.5",
     "intl-locales-supported": "^1.0.0",
     "npm": "^5.8.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-scripts": "1.1.1"
+    "react-scripts": "1.1.1",
+    "react-stripe-checkout": "^2.6.3"
   },
   "scripts": {
     "start": "react-scripts start",
