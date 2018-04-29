@@ -172,7 +172,6 @@ class CoordFields extends React.Component{
   }
 }
 
-
 class Form extends React.Component {
   constructor(props) {
     super(props);
@@ -475,35 +474,28 @@ class Form extends React.Component {
       display: 'inline-block',
     };
 
-   
-    const onToken = (token) => {
-      console.log(token);
-      const secKey = "youWontGetIt";
-     /* 
-      "https://stripe.com/docs/error-codes/parameter-missing"
-      "Must provide source or customer."*/
-      fetch('https://api.stripe.com/v1/charges', {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer ' + secKey
-        },
-        method: 'POST',
-        body: JSON.stringify(token),
+
+
+
+   const onToken = (token) => {
+    // doit être stocké coté en serveur pour la gestion des charges
+    // car la clé secrête doit être utilisée
+    /* fetch('/save-stripe-token', {
+      method: 'POST',
+      body: JSON.stringify(token),
       }).then(response => {
         response.json().then(data => {
           console.log(data);
           this.closeStripeView();
         });
-      });
+      });*/
     }
     
     return (
-
         <Paper zDepth={2} style={paperStyle}>
         <p>Il vous reste à regler {this.state.totalAdd} euros</p> 
         <StripeCheckout
-        name="Billeterie du Louvre" // the pop-in header title
+        name="Billeterie du Louvre" 
         amount={this.state.totalAdd * 100} // cents
         currency="EUR"
         locale="fr"
