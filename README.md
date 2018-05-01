@@ -3,6 +3,7 @@ installation des dépendances :
 - npm i intl-locales-supported
 - npm i material-ui
 - npm i react-stripe-checkout
+- npm i stripe
 
 
 
