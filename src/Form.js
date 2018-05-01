@@ -474,9 +474,6 @@ class Form extends React.Component {
       display: 'inline-block',
     };
 
-
-
-
    const onToken = (token) => {
     // doit être stocké coté en serveur pour la gestion des charges
     // car la clé secrête doit être utilisée
@@ -489,22 +486,33 @@ class Form extends React.Component {
           this.closeStripeView();
         });
       });*/
-    }
+      token.amount = this.state.totalAdd * 100;
+      token.currency= 'EUR';
+      console.log(token);
+      fetch('/', {
+        method: 'POST',
+        body: JSON.stringify(token)
+      }).then(response => {
+          console.log(response.text());
+         });
+      }
+
+  
     
     return (
         <Paper zDepth={2} style={paperStyle}>
         <p>Il vous reste à regler {this.state.totalAdd} euros</p> 
         <StripeCheckout
-        name="Billeterie du Louvre" 
-        amount={this.state.totalAdd * 100} // cents
-        currency="EUR"
-        locale="fr"
-        label="Payer"
-        style={{ background: '#a4c639', borderRadius: 'unset'}} 
-        textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
-        touchRipple={true}
-        token={onToken}
-        stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
+          name="Billeterie du Louvre" 
+          amount={this.state.totalAdd * 100} // cents
+          currency="EUR"
+          locale="fr"
+          label="Payer"
+          style={{ background: '#a4c639', borderRadius: 'unset'}} 
+          textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
+          touchRipple={true}
+          token={onToken}
+          stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
         />
         <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
         </Paper>
