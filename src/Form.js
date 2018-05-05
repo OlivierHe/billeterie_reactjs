@@ -54,8 +54,6 @@ class CoordFields extends React.Component{
   }
  
   handleChange(event) {
-    //const validation = (event.target.type === "text") ? 'type text' : 'type email' ;
-    //console.log(validation);   
     this.props.inpChange(event.target.name, event.target.value, event.target.type);
   }
 
@@ -95,7 +93,6 @@ class CoordFields extends React.Component{
   }
 
   render() {
-    //console.log(this.state);
     return(
       <div>
       <fieldset>
@@ -180,6 +177,7 @@ class Form extends React.Component {
       error: {},
       total: {},
       isError: false,
+      payed: false,
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -411,18 +409,26 @@ class Form extends React.Component {
 
 
  handleQtyChange(iNam, iVal) {
-    this.setState({
-      [iNam]: iVal,
-      ['viewCoord' + this.state.qtyBillets]: true,
-    });
-    this.setState(this.fillStartValue(this.state.qtyBillets));
+   if (iVal < 0) {
+      return; 
+   }else{
+      this.setState({
+        [iNam]: iVal,
+        ['viewCoord' + this.state.qtyBillets]: true,
+      });
+      if (iVal < this.state.qtyBillets) { 
+        // si la quantité est réduite on supprime le billet sans remplissage de valeur début
+        this.setState(this.clearTicket(this.state.qtyBillets), this.setState({}));
+        return;
+      }
+      this.setState(this.fillStartValue(this.state.qtyBillets));
+    };
   } 
 
   handleResa(){
     this.setState({isError: false});
     Object.entries(this.state).forEach(([cle, valeur]) => {
       if (cle !=="total" && cle !=="error" && valeur !== undefined && (valeur === "" || (valeur.constructor === Object && Object.keys(valeur).length === 0))) {
-            console.log("dans erreur");
             // callback sur methode showprice dans une function arrow sinon résultat faux
             this.setState(prevState => {
               return {
@@ -474,25 +480,19 @@ class Form extends React.Component {
       display: 'inline-block',
     };
 
+ 
+  if (this.state.totalAdd === 0 ) { this.setState({payed : true })};
+
    const onToken = (token) => {
     // doit être stocké coté en serveur pour la gestion des charges
-    // car la clé secrête doit être utilisée
-    /* fetch('/save-stripe-token', {
-      method: 'POST',
-      body: JSON.stringify(token),
-      }).then(response => {
-        response.json().then(data => {
-          console.log(data);
-          this.closeStripeView();
-        });
-      });*/
       token.amount = this.state.totalAdd * 100;
       token.currency= 'EUR';
       console.log(token);
-      fetch('/', {
+      fetch('/charge', {
         method: 'POST',
         body: JSON.stringify(token)
       }).then(response => {
+          this.setState({payed : true });
           console.log(response.text());
          });
       }
@@ -500,22 +500,29 @@ class Form extends React.Component {
   
     
     return (
-        <Paper zDepth={2} style={paperStyle}>
-        <p>Il vous reste à regler {this.state.totalAdd} euros</p> 
-        <StripeCheckout
-          name="Billeterie du Louvre" 
-          amount={this.state.totalAdd * 100} // cents
-          currency="EUR"
-          locale="fr"
-          label="Payer"
-          style={{ background: '#a4c639', borderRadius: 'unset'}} 
-          textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
-          touchRipple={true}
-          token={onToken}
-          stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
-        />
-        <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
-        </Paper>
+      <div>
+      {!this.state.payed ? (
+          <Paper zDepth={2} style={paperStyle}>
+          <p>Il vous reste à regler {this.state.totalAdd} euros</p> 
+          <StripeCheckout
+            name="Billeterie du Louvre" 
+            amount={this.state.totalAdd * 100} // cents
+            currency="EUR"
+            locale="fr"
+            label="Payer"
+            style={{ background: '#a4c639', borderRadius: 'unset'}} 
+            textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
+            touchRipple={true}
+            token={onToken}
+            stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
+          />
+          <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
+          </Paper>
+        ) : (
+          this.closeStripeView()
+        )
+      }
+      </div>
     );
   }
 
@@ -524,7 +531,6 @@ class Form extends React.Component {
       margin: 12,
     };
     console.log(this.state); 
-    //console.log("showPrice render is "+ showPrice);
     const forms = [];
     for(let i = 0; i < this.state.qtyBillets; i++) {
       forms.push( this.state["viewCoord" + i] ? (
@@ -573,7 +579,7 @@ class Form extends React.Component {
     return (
       <div>
       { !this.state.isError && this.state.totalAdd !== undefined ? (
-          this.payView(style)
+         this.payView(style)
        ) : (    
       <form>
     
