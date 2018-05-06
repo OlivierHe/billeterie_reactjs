@@ -22,6 +22,10 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/charge') {
       res.statusCode = 200;
       let body = '';
+      req.on('error', (err) => {
+        res.statusCode = err;
+        res.end('error');
+      })
       req.on('data', chunk => {
           body += chunk.toString();
       });

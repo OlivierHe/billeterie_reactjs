@@ -46,6 +46,27 @@ class QtyBillets extends React.Component {
 }
 
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  componentDidCatch(error, info) {
+    // Display fallback UI
+    this.setState({ hasError: true});
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return <h1>Erreur du module de payement</h1>;
+    }
+    return this.props.children;
+  }
+}
+
+
 class CoordFields extends React.Component{
   constructor(props) {
     super(props);
@@ -463,7 +484,6 @@ class Form extends React.Component {
     }
   }
 
-
   closeStripeView(){
     return (
       <Paper zDepth={2}>
@@ -487,13 +507,12 @@ class Form extends React.Component {
     // doit être stocké coté en serveur pour la gestion des charges
       token.amount = this.state.totalAdd * 100;
       token.currency= 'EUR';
-      console.log(token);
       fetch('/charge', {
         method: 'POST',
         body: JSON.stringify(token)
       }).then(response => {
           this.setState({payed : true });
-          console.log(response.text());
+          response.status === 200 ? (console.log("aucun problèmes")) : ( console.log("problèmes"));
          });
       }
 
@@ -504,18 +523,20 @@ class Form extends React.Component {
       {!this.state.payed ? (
           <Paper zDepth={2} style={paperStyle}>
           <p>Il vous reste à regler {this.state.totalAdd} euros</p> 
-          <StripeCheckout
-            name="Billeterie du Louvre" 
-            amount={this.state.totalAdd * 100} // cents
-            currency="EUR"
-            locale="fr"
-            label="Payer"
-            style={{ background: '#a4c639', borderRadius: 'unset'}} 
-            textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
-            touchRipple={true}
-            token={onToken}
-            stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
-          />
+          <ErrorBoundary>
+            <StripeCheckout
+              name="Billeterie du Louvre" 
+              amount={this.state.totalAdd * 100} // cents
+              currency="EUR"
+              locale="fr"
+              label="Payer"
+              style={{ background: '#a4c639', borderRadius: 'unset'}} 
+              textStyle= {{background: '#a4c639', borderRadius: 'unset', backgroundImage: 'none'}}
+              touchRipple={true}
+              token={onToken}
+              stripeKey="pk_test_F6QKIb7chPWGBRdRXawkyWtY"
+            />
+          </ErrorBoundary>
           <RaisedButton label="Revenir en arrière" secondary={true} style={style} onClick={() => this.showPrice(true)}/>
           </Paper>
         ) : (
